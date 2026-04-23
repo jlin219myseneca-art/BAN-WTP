@@ -188,6 +188,7 @@ elif choice == "🤖 AI Skill Discovery":
     st.session_state["jd_text"] = jd_text
 
     # ---------- Analyze ----------
+    # ---- Analyze with AI ----
     if st.button("Analyze with AI"):
         if not jd_text or len(jd_text) < 50:
             st.warning("Paste a valid job description.")
@@ -206,6 +207,7 @@ elif choice == "🤖 AI Skill Discovery":
                 st.json(preview)
             else:
                 st.info("No explicitly mentioned certifications detected.")
+
 
     # ---------- Save ----------
     if st.session_state.get("llm_results") and st.button("Save to Dashboard"):

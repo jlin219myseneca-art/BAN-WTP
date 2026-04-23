@@ -16,11 +16,12 @@ CERT_REGEX = {
     # Agile / Scrum
     # ==========================
     "Agile/Scrum": (
-        r"lean six sigma|"
         r"\bscrum\b|"
         r"\bkanban\b|"
         r"\bsafe\b|"
-        r"scaled agile framework"
+        r"scaled agile framework|"
+        r"certified scrum master|"
+        r"scrum master certification"
     ),
 
     # ==========================
