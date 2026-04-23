@@ -48,6 +48,7 @@ def generate_content_hash(text: str) -> str:
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_NAME = os.path.join(BASE_DIR, "job_market_research_v2.db")
+print("USING DB FILE:", DB_NAME)
 
 
 def get_connection():
@@ -162,3 +163,5 @@ def save_job_data(job_record, cert_list):
                     "mentioned",
                 )
             )
+
+
