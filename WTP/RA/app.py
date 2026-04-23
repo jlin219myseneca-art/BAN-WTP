@@ -11,6 +11,13 @@ from db_utils import (
     generate_content_hash,
     get_connection,
 )
+import re
+
+def explicitly_mentioned(cert_name: str, text: str) -> bool:
+    if not cert_name:
+        return False
+    pattern = r"\b" + re.escape(cert_name.lower()) + r"\b"
+    return re.search(pattern, text.lower()) is not None
 
 # ==================================================
 # App Init
@@ -137,7 +144,19 @@ elif choice == "🤖 AI Skill Discovery":
             st.warning("Paste a valid job description.")
         else:
             st.session_state["llm_results"] = extract_with_llm(jd_text)
-            st.json(st.session_state["llm_results"])
+            
+            # show only explicit-only validated preview
+            preview = st.session_state["llm_results"]
+            if isinstance(preview, dict) and "certs" in preview:
+                preview = preview["certs"]
+
+            text_lower = jd_text.lower()
+            preview = [
+                c for c in preview
+                if explicitly_mentioned(c.get("name", ""), jd_text)
+            ]
+
+            st.json(preview)
 
     if st.session_state["llm_results"]:
         if st.button("Save to Dashboard"):
