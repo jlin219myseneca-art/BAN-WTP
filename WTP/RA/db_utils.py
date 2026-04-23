@@ -47,7 +47,7 @@ def generate_content_hash(text: str) -> str:
 # --------------------------------------------------
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_NAME = os.path.join(BASE_DIR, "job_market_research_v2.db")
+DB_NAME = os.path.join(BASE_DIR, "job_market_research_v3.db")
 print("USING DB FILE:", DB_NAME)
 
 
