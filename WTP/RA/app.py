@@ -13,11 +13,19 @@ from db_utils import (
 )
 import re
 
-def explicitly_mentioned(cert_name: str, text: str) -> bool:
-    if not cert_name:
+
+
+def explicit(name: str, text: str) -> bool:
+    """
+    Returns True only if the certification name appears
+    explicitly (as a whole word/phrase) in the text.
+    """
+    if not name:
         return False
-    pattern = r"\b" + re.escape(cert_name.lower()) + r"\b"
+
+    pattern = r"\b" + re.escape(name.lower()) + r"\b"
     return re.search(pattern, text.lower()) is not None
+
 
 # ==================================================
 # App Init
@@ -45,21 +53,61 @@ URL_REGEX = r"https?://[^\s)\"]+"
 def extract_urls(text):
     return re.findall(URL_REGEX, text)
 
-def extract_job_title(text):
-    blacklist = [
-        "job id", "posting id", "location", "department",
-        "salary", "employment type", "position type"
+
+
+def extract_job_title(text: str) -> str:
+    """
+    Extract job title from a role-definition sentence
+    instead of fragile line heuristics.
+    """
+
+    # --- Step 1: look for role-definition sentences ---
+    role_sentence_patterns = [
+        r"^the\s+([a-zA-Z0-9 /&()-]+?)\s+will be\b",
+        r"^the\s+([a-zA-Z0-9 /&()-]+?)\s+is responsible for\b",
+        r"^as a\s+([a-zA-Z0-9 /&()-]+?),",
     ]
+
     for line in text.splitlines():
         s = line.strip()
         if not s:
             continue
-        if s.startswith("http"):
+
+        lower = s.lower()
+
+        # skip obvious non-role lines
+        if lower.startswith("http"):
             continue
-        if any(b in s.lower() for b in blacklist):
+        if any(k in lower for k in [
+            "benefits", "paid time off", "company overview",
+            "full job description", "requirements", "qualifications"
+        ]):
             continue
-        if 10 <= len(s) <= 100:
+
+        for pattern in role_sentence_patterns:
+            m = re.search(pattern, lower)
+            if m:
+                # return the captured role phrase, title-cased
+                return m.group(1).strip().title()
+
+    # --- Step 2: fallback to first meaningful non-boilerplate line ---
+    blacklist = [
+        "benefits", "paid time off", "company overview",
+        "full job description", "requirements", "qualifications",
+        "job id", "posting id"
+    ]
+
+    for line in text.splitlines():
+        s = line.strip()
+        if not s:
+            continue
+
+        lower = s.lower()
+        if any(b in lower for b in blacklist):
+            continue
+        if 10 <= len(s) <= 80:
             return s
+
     return "Job Posting"
 
 # ==================================================
@@ -139,51 +187,50 @@ elif choice == "🤖 AI Skill Discovery":
     )
     st.session_state["jd_text"] = jd_text
 
+    # ---------- Analyze ----------
     if st.button("Analyze with AI"):
         if not jd_text or len(jd_text) < 50:
             st.warning("Paste a valid job description.")
         else:
-            st.session_state["llm_results"] = extract_with_llm(jd_text)
-            
-            # show only explicit-only validated preview
-            preview = st.session_state["llm_results"]
-            if isinstance(preview, dict) and "certs" in preview:
-                preview = preview["certs"]
+            raw = extract_with_llm(jd_text)
+            st.session_state["llm_results"] = raw
 
-            text_lower = jd_text.lower()
+            certs = raw["certs"] if isinstance(raw, dict) and "certs" in raw else raw
+
             preview = [
-                c for c in preview
-                if explicitly_mentioned(c.get("name", ""), jd_text)
-            ]
-
-            st.json(preview)
-
-    if st.session_state["llm_results"]:
-        if st.button("Save to Dashboard"):
-            content_hash = generate_content_hash(jd_text)
-
-            job_record = {
-                "job_id": f"AI_{content_hash[:12]}",
-                "title": extract_job_title(jd_text),
-                "url": url_input or None,
-                "source_type": "ai",
-                "content_hash": content_hash,
-            }
-
-            certs = st.session_state["llm_results"]
-            if isinstance(certs, dict) and "certs" in certs:
-                certs = certs["certs"]
-
-            text_lower = jd_text.lower()
-            certs = [
                 c for c in certs
-                if c.get("name", "").lower() in text_lower
+                if explicit(c.get("name", ""), jd_text)
             ]
 
-            save_job_data(job_record, certs)
+            if preview:
+                st.json(preview)
+            else:
+                st.info("No explicitly mentioned certifications detected.")
 
-            st.session_state["llm_results"] = None
-            st.success("Saved to dashboard.")
+    # ---------- Save ----------
+    if st.session_state.get("llm_results") and st.button("Save to Dashboard"):
+        raw = st.session_state["llm_results"]
+        certs = raw["certs"] if isinstance(raw, dict) and "certs" in raw else raw
+        certs = [
+                    c for c in certs
+                    if explicit(c.get("name", ""), jd_text)
+                ]
+
+        content_hash = generate_content_hash(jd_text)
+        job_record = {
+            "job_id": f"AI_{content_hash[:12]}",
+            "title": extract_job_title(jd_text),
+            "url": url_input or None,
+            "source_type": "ai",
+            "content_hash": content_hash,
+        }
+
+        save_job_data(job_record, certs)
+        st.session_state["llm_results"] = None
+        st.success("Saved to dashboard.")
+
+                
+
 
 # ==================================================
 # Dashboard
