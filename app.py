@@ -300,13 +300,23 @@ elif choice == "📈 Dashboard":
         hide_index=True
     )
 
+    max_val = summary["Total Mentions"].max()
+    x_max = max(max_val + 1, int(max_val * 1.5))
+
     fig = px.bar(
         summary,
         x="Total Mentions",
         y="Certification / Skill",
         orientation="h",
     )
+
+    fig.update_xaxes(
+        range=[0, x_max],
+        dtick=1
+    )
+
     st.plotly_chart(fig, use_container_width=True)
+
 
     # ---------- Trend Chart ----------
     with st.expander("📈View demand trends over time", expanded=False):
