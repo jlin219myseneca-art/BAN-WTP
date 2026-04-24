@@ -87,10 +87,8 @@ CERT_REGEX = {
     # AI / Machine Learning
     # ==========================
     "AI/ML": (
-        r"\bai\b(?!\w)|"
         r"artificial intelligence|"
         r"machine learning|"
-        r"\bml\b(?!\w)|"
         r"deep learning|"
         r"neural networks|"
         r"\bllm\b|"
@@ -127,6 +125,21 @@ CERT_REGEX = {
         r"\barcgis\b|"
         r"\bqgis\b"
     ),
+
+
+    # ==========================
+    # Finance Certifications
+    # ==========================
+    "CPA": (
+        r"\bcpa\b|"
+        r"chartered professional accountant"
+    ),
+
+    "CFA": (
+        r"\bcfa\b|"
+        r"chartered financial analyst"
+    ),
+
 }
 
 import requests
