@@ -131,8 +131,11 @@ CERT_REGEX = {
     # Finance Certifications
     # ==========================
     "CPA": (
-        r"cpa designation|required cpa|cpa license|certified public accountant"
+        r"\bcpa designation\b|"
+        r"\bcertified public accountant\b|"
+        r"\bcpa license\b"
     ),
+
 
     "CFA": (
         r"\bcfa\b|"
