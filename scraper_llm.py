@@ -45,7 +45,9 @@ def extract_with_llm(text_or_url: str):
 
     IMPORTANT CONSTRAINTS:
 
-    • Only extract certifications that are explicitly stated in the job description text.
+    Acronyms may have multiple meanings.
+    - Only extract certifications when the context clearly refers to a PROFESSIONAL CREDENTIAL.
+    - Do NOT extract performance metrics such as CPA (Cost Per Acquisition), ROAS, CTR, CPC.
     • Do NOT infer or assume certifications based on role seniority, responsibilities, or industry.
     • Do NOT add certifications that would be “nice to have” unless they are clearly mentioned.
     • If a certification name does not appear verbatim or as a clear abbreviation in the text, do not include it.
